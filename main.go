@@ -27,6 +27,16 @@ type model struct {
 	hasFinished   bool
 }
 
+func initialModel(height, width int) model {
+	return model{
+		sentence:   "He liked to play with words in the bathtub. Joyce enjoyed eating pancakes with ketchup.",
+		position:   0,
+		inputError: false,
+		width:      width,
+		height:     height,
+	}
+}
+
 type tickMsg time.Time
 
 func (m model) Init() tea.Cmd {
@@ -39,6 +49,9 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "q", "esc", "ctrl+c":
 			return m, tea.Quit
+			// TODO: restart the program
+		case "ctrl+r":
+			return initialModel(m.height, m.width), nil
 		}
 		if m.position == 1 {
 			m.startTime = time.Now()
@@ -69,7 +82,6 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 func (m model) View() string {
-
 	var builder strings.Builder
 	if m.hasFinished {
 		// Calculate total time in seconds
@@ -108,7 +120,7 @@ func (m model) View() string {
 func main() {
 	m := model{
 		sentence: "Hello",
-		// sentence: "He liked to play with words in the bathtub.Joyce enjoyed eating pancakes with ketchup.",
+		// sentence: "He liked to play with words in the bathtub. Joyce enjoyed eating pancakes with ketchup.",
 		position: 0,
 	}
 
