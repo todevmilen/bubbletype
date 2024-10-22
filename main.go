@@ -44,7 +44,7 @@ func initialModel(height, width int) model {
 type tickMsg time.Time
 
 func (m model) Init() tea.Cmd {
-	return nil
+	return tea.SetWindowTitle("BubbleType")
 }
 
 func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
