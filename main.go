@@ -18,22 +18,26 @@ var (
 )
 
 type model struct {
-	sentence      string
-	position      int
-	inputError    bool
-	width, height int
-	startTime     time.Time
-	endTime       time.Time
-	hasFinished   bool
+	sentence        string
+	position        int
+	inputError      bool
+	width, height   int
+	startTime       time.Time
+	endTime         time.Time
+	hasFinished     bool
+	inputErrorCount int
+	hasMistake      bool
 }
 
 func initialModel(height, width int) model {
 	return model{
-		sentence:   "He liked to play with words in the bathtub. Joyce enjoyed eating pancakes with ketchup.",
-		position:   0,
-		inputError: false,
-		width:      width,
-		height:     height,
+		sentence:        "He liked to play with words in the bathtub. Joyce enjoyed eating pancakes with ketchup.",
+		position:        0,
+		inputError:      false,
+		width:           width,
+		height:          height,
+		inputErrorCount: 0,
+		hasMistake:      false,
 	}
 }
 
@@ -49,7 +53,6 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "q", "esc", "ctrl+c":
 			return m, tea.Quit
-			// TODO: restart the program
 		case "ctrl+r":
 			return initialModel(m.height, m.width), nil
 		}
@@ -65,13 +68,17 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 			if msg.String() == expectedChar {
 				m.position++
 				m.inputError = false
+				m.hasMistake = false
 
 				if m.position == len(m.sentence) {
 					m.endTime = time.Now()
 					m.hasFinished = true
 				}
-			} else {
+			} else if !m.hasMistake {
+				// count input errors to calculate accuracy
+				m.inputErrorCount++
 				m.inputError = true
+				m.hasMistake = true
 			}
 		}
 	case tea.WindowSizeMsg:
@@ -89,10 +96,14 @@ func (m model) View() string {
 
 		// Calculate WPM (words per minute)
 		totalChars := len(m.sentence)
-		wordsTyped := float64(totalChars) / 5
+		wordsTyped := float64(totalChars / 5)
+		// Calculate WPM (words per minute) in decimal
 		wpm := (wordsTyped / totalTime) * 60 // WPM formula
+		// Calculate accuracy
+		correctChars := totalChars - m.inputErrorCount
+		acc := int((float64(correctChars) / float64(totalChars)) * 100)
 
-		return fmt.Sprintf("Congrats! You've typed the sentence.\nYour WPM: %.2f", wpm)
+		return fmt.Sprintf("Congrats! You've typed the sentence.\nYour WPM: %.0f and Your Acc: %d%%", wpm, acc)
 	}
 
 	// Build the sentence view
