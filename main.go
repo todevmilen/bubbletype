@@ -15,6 +15,27 @@ var (
 	correctStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("42"))
 	errorStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("1"))
 	defaultStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("15"))
+
+	titleStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("205")).
+			Align(lipgloss.Center).
+			Padding(1, 2)
+
+	wpmStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("42")) // Green for WPM
+
+	accStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("39")) // Blue for Accuracy
+
+	borderStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("63")).
+			Padding(1, 1).
+			Margin(1, 0).
+			Align(lipgloss.Center)
 )
 
 type model struct {
@@ -31,7 +52,7 @@ type model struct {
 
 func initialModel(height, width int) model {
 	return model{
-		sentence:        "He liked to play with words in the bathtub. Joyce enjoyed eating pancakes with ketchup.",
+		sentence:        "He liked to play with words.",
 		position:        0,
 		inputError:      false,
 		width:           width,
@@ -109,7 +130,22 @@ func (m model) View() string {
 		correctChars := totalChars - m.inputErrorCount
 		acc := int((float64(correctChars) / float64(totalChars)) * 100)
 
-		return fmt.Sprintf("Congrats! You've typed the sentence.\nYour WPM: %.0f and Your Acc: %d%%", wpm, acc)
+		// return fmt.Sprintf("Congrats! You've typed the sentence.\nYour WPM: %.0f and Your Acc: %d%%", wpm, acc)
+		// Build the results screen
+		title := titleStyle.Render("🎉 Congrats! 🎉\nYou've completed the sentence.")
+
+		wpmDisplay := wpmStyle.Render(fmt.Sprintf("WPM: %.0f", wpm))
+		accDisplay := accStyle.Render(fmt.Sprintf("Accuracy: %d%%", acc))
+
+		// Wrap WPM and accuracy in a border
+		wpmBox := borderStyle.Render(wpmDisplay)
+		accBox := borderStyle.Render(accDisplay)
+
+		// Combine everything into the final result view
+		resultView := lipgloss.JoinVertical(lipgloss.Center, title, wpmBox, accBox)
+
+		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, resultView)
+
 	}
 
 	// Build the sentence view
