@@ -51,17 +51,22 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := message.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+
 		case "q", "esc", "ctrl+c":
 			return m, tea.Quit
+
 		case "ctrl+r":
 			return initialModel(m.height, m.width), nil
 		}
+
 		if m.position == 1 {
 			m.startTime = time.Now()
 		}
+
 		if m.hasFinished {
 			return m, nil
 		}
+
 		if m.position < len(m.sentence) {
 			expectedChar := string(m.sentence[m.position])
 
@@ -74,13 +79,14 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 					m.endTime = time.Now()
 					m.hasFinished = true
 				}
+
 			} else if !m.hasMistake {
-				// count input errors to calculate accuracy
 				m.inputErrorCount++
 				m.inputError = true
 				m.hasMistake = true
 			}
 		}
+
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -97,8 +103,8 @@ func (m model) View() string {
 		// Calculate WPM (words per minute)
 		totalChars := len(m.sentence)
 		wordsTyped := float64(totalChars / 5)
-		// Calculate WPM (words per minute) in decimal
 		wpm := (wordsTyped / totalTime) * 60 // WPM formula
+
 		// Calculate accuracy
 		correctChars := totalChars - m.inputErrorCount
 		acc := int((float64(correctChars) / float64(totalChars)) * 100)
@@ -109,7 +115,7 @@ func (m model) View() string {
 	// Build the sentence view
 	for i, char := range m.sentence {
 		if i < m.position {
-			// Highlight correct characters
+			// Highlight correct characters with green
 			builder.WriteString(correctStyle.Render(string(char)))
 		} else if i == m.position && m.inputError {
 			// Highlight the expected character in red when input is incorrect
@@ -129,12 +135,7 @@ func (m model) View() string {
 }
 
 func main() {
-	m := model{
-		sentence: "Hello",
-		// sentence: "He liked to play with words in the bathtub. Joyce enjoyed eating pancakes with ketchup.",
-		position: 0,
-	}
-
+	m := initialModel(0, 0)
 	p := tea.NewProgram(m, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
